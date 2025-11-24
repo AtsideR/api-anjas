@@ -1,24 +1,27 @@
-// Vercel function for /api/anjem
-const serverless = require('serverless-http');
-const express = require('express');
-const cors = require('cors');
+// Lightweight Vercel function for /api/anjem
+// This handler avoids mounting a full Express app to reduce cold-start latency.
+const Anjem = require('../src/models/anjemModel');
 
-const anjemRoutes = require('../src/routes/anjemRoutes');
+module.exports = async (req, res) => {
+  try {
+    if (req.method === 'GET') {
+      // GET /api/anjem -> list all
+      const result = await Anjem.getAll();
+      // Supabase returns { data, error }
+      const data = result.data || null;
+      const error = result.error || null;
+      if (error) {
+        console.error('Supabase error (getAll):', error);
+        return res.status(500).json({ error });
+      }
+      return res.status(200).json(data);
+    }
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Mount existing router at root so Vercel's /api/anjem maps to router's '/'
-app.use('/', anjemRoutes);
-
-// JSON parse error handler
-app.use((err, req, res, next) => {
-  if (err && err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    console.error('Invalid JSON received:', err.message);
-    return res.status(400).json({ error: 'Invalid JSON in request body' });
+    // Not allowed
+    res.setHeader('Allow', 'GET');
+    return res.status(405).end('Method Not Allowed');
+  } catch (err) {
+    console.error('Unhandled error in /api/anjem:', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
-  next(err);
-});
-
-module.exports = serverless(app);
+};

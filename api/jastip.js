@@ -1,24 +1,24 @@
-// Vercel function for /api/jastip
-const serverless = require('serverless-http');
-const express = require('express');
-const cors = require('cors');
+// Lightweight Vercel function for /api/jastip
+// This handler avoids mounting a full Express app to reduce cold-start latency.
+const Jastip = require('../src/models/jastipModel');
 
-const jastipRoutes = require('../src/routes/jastipRoutes');
+module.exports = async (req, res) => {
+  try {
+    if (req.method === 'GET') {
+      const result = await Jastip.getAll();
+      const data = result.data || null;
+      const error = result.error || null;
+      if (error) {
+        console.error('Supabase error (getAll jastip):', error);
+        return res.status(500).json({ error });
+      }
+      return res.status(200).json(data);
+    }
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Mount existing router at root so Vercel's /api/jastip maps to router's '/'
-app.use('/', jastipRoutes);
-
-// JSON parse error handler
-app.use((err, req, res, next) => {
-  if (err && err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    console.error('Invalid JSON received:', err.message);
-    return res.status(400).json({ error: 'Invalid JSON in request body' });
+    res.setHeader('Allow', 'GET');
+    return res.status(405).end('Method Not Allowed');
+  } catch (err) {
+    console.error('Unhandled error in /api/jastip:', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
-  next(err);
-});
-
-module.exports = serverless(app);
+};
