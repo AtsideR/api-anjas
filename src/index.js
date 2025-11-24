@@ -27,5 +27,5 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Export the app so it can be consumed by a serverless wrapper (Vercel)
+module.exports = app;
