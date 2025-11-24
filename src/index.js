@@ -27,5 +27,7 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
+app.listen(3000, () => console.log("Server running"))
+
 // Export the app so it can be consumed by a serverless wrapper (Vercel)
 module.exports = app;
