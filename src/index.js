@@ -15,8 +15,8 @@ app.get("/", (req, res) => {
   res.send("API Anjem & Jastip Running 🚀");
 });
 
-app.use("/api/anjem", anjemRoutes);
-app.use("/api/jastip", jastipRoutes);
+app.use("/api/anjem", require("./routes/anjemRoutes"));
+app.use("/api/jastip", require("./routes/jastipRoutes"));
 
 // JSON parse error handler: return 400 when request body is invalid JSON
 app.use((err, req, res, next) => {
