@@ -1,46 +1,16 @@
-// routes/anjemRoutes.js
+// routes/jastipRoutes.js
 const express = require("express");
 const router = express.Router();
-const { supabase } = require("../supabaseClient");
+const controller = require("../controllers/jastipController");
 
-// GET semua data
-router.get("/", async (req, res) => {
-  const { data, error } = await supabase.from("anjem").select("*");
+// SAFE STATIC ROUTES
+router.get("/", controller.getAll);
 
-  if (error) return res.status(500).json({ error });
-  res.json(data);
-});
+// ID ROUTES — aman, tidak bentrok dengan "/"
+router.get("/id/:id", controller.getOne);
+router.put("/id/:id", controller.update);
+router.delete("/id/:id", controller.remove);
 
-// POST tambah data
-router.post("/", async (req, res) => {
-  const payload = req.body;
-
-  // VALIDASI AGAR TIDAK ERROR BIGINT
-  if (payload.id && isNaN(Number(payload.id))) {
-    return res.status(400).json({ error: "ID harus berupa angka" });
-  }
-
-  const { data, error } = await supabase.from("anjem").insert([payload]);
-
-  if (error) return res.status(500).json({ error });
-  res.json(data);
-});
-
-// GET berdasarkan ID
-router.get("/id/:id", async (req, res) => {
-  const id = Number(req.params.id);
-
-  if (isNaN(id)) {
-    return res.status(400).json({ error: "ID harus angka" });
-  }
-
-  const { data, error } = await supabase
-    .from("anjem")
-    .select("*")
-    .eq("id", id);
-
-  if (error) return res.status(500).json({ error });
-  res.json(data);
-});
+router.post("/", controller.create);
 
 module.exports = router;
